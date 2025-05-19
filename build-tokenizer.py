@@ -1,3 +1,4 @@
+#https://github.com/huggingface/tokenizers/blob/main/bindings/python/examples/train_bert_wordpiece.py
 from tokenizers import BertWordPieceTokenizer
 
 # Paths
