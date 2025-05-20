@@ -48,7 +48,7 @@ def are_lengths_similar(word1, word2, max_diff=2):
     """
     return abs(len(word1) - len(word2)) <= max_diff
     
-def select_best_suggestion(original_word, masked_text):
+def select_best_suggestion(original_ocred_word, masked_text):
     """
     Combines Norvig and MLM suggestions based on defined conditions.
     
@@ -60,7 +60,7 @@ def select_best_suggestion(original_word, masked_text):
         str: Selected suggestion
     """
     # Norvig correction and probability
-    norvig_suggestion = norvig.correction(original_word)
+    norvig_suggestion = norvig.correction(original_ocred_word)
     norvig_prob = norvig.probability(norvig_suggestion)
 
     # MLM suggestion
@@ -69,14 +69,14 @@ def select_best_suggestion(original_word, masked_text):
     # Rule-based decision
     if norvig_prob == 1:
         return norvig_suggestion
-    elif are_lengths_similar(mlm_suggestion, original_word):
+    elif are_lengths_similar(mlm_suggestion, original_ocred_word):
         return mlm_suggestion
     else:
-        return original_word  # fallback
+        return original_ocred_word  # fallback
 
 # Example usage
 if __name__ == "__main__":
-    ocred_original_word = "सांग"
+    ocred_word = "सांग"
     text_with_mask = "सुत्रां [MASK] तांणी एके बायले"
-    final_suggestion = select_best_suggestion(ocred_original_word, text_with_mask)
+    final_suggestion = select_best_suggestion(ocred_word, text_with_mask)
     print("Selected Suggestion:", final_suggestion)
