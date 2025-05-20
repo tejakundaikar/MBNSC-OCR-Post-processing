@@ -4,7 +4,7 @@ from nltk.tokenize import WordPunctTokenizer
 import numpy as np
 import time
 import textdistance
-top_k=5
+top_k=6
 text="सुत्रां [MASK] तांणी एके बायले"
 text = tokenizer.tokenize(text)
 text.insert(0,'[CLS]')
