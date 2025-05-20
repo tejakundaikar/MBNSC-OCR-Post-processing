@@ -2,8 +2,8 @@
 from tokenizers import BertWordPieceTokenizer
 
 # Paths
-input_file = "/content/sample_data/train_corpus.txt"
-tokenizer_path = "/content/sample_data/tokenizer/"
+input_file = "/data/train_corpus.txt"
+tokenizer_path = "/tokenizer/"
 
 # Initialize tokenizer
 tokenizer = BertWordPieceTokenizer(
