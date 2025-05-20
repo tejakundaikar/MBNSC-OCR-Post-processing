@@ -6,7 +6,7 @@ MBNSC-OCR-Post-processing/
 │   └── train_corpus.txt  ← your large raw text corpus
 │
 ├── tokenizer/
-│   └── (WordPiece vocab files will go here)
+│   └── (tokenizer vocab files will go here)
 │
 ├── model/
 │   └── (Trained model will go here)
