@@ -61,7 +61,7 @@ def select_best_suggestion(original_word, masked_text):
 
 # Example usage
 if __name__ == "__main__":
-    original = "सांग"
+    ocred_original_word = "सांग"
     text_with_mask = "सुत्रां [MASK] तांणी एके बायले"
-    final_suggestion = select_best_suggestion(original, text_with_mask)
+    final_suggestion = select_best_suggestion(ocred_original_word, text_with_mask)
     print("Selected Suggestion:", final_suggestion)
