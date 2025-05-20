@@ -3,8 +3,8 @@ from transformers import BertTokenizer, BertForMaskedLM
 from norvig_spell import NorvigSpellCorrector
 
 # Load model and tokenizer
-# tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-# model = BertForMaskedLM.from_pretrained('bert-base-multilingual-cased')
+# tokenizer = BertTokenizer.from_pretrained('XXX')
+# model = BertForMaskedLM.from_pretrained('XXX')
 model.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
