@@ -1,3 +1,9 @@
+"""Spelling Corrector in Python 3; see http://norvig.com/spell-correct.html
+
+Copyright (c) 2007-2016 Peter Norvig
+MIT license: www.opensource.org/licenses/mit-license.php
+"""
+
 import re
 from collections import Counter
 from typing import List, Set, Tuple
