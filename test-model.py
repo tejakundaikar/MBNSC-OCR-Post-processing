@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # Load Norvig spell corrector
-norvig = NorvigSpellCorrector('/content/sample_data/train_corpus.txt')
+norvig = NorvigSpellCorrector('/data/train_corpus.txt')
 
 def get_mask_suggestion(text, top_k=1):
     """Returns top suggestion(s) from MLM for [MASK] token."""
