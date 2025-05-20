@@ -2,8 +2,8 @@ import torch
 from transformers import BertTokenizer, BertForMaskedLM
 
 # Load tokenizer and model once
-tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-model = BertForMaskedLM.from_pretrained('bert-base-multilingual-cased')
+# tokenizer = BertTokenizer.from_pretrained('XXX')
+# model = BertForMaskedLM.from_pretrained('XXX')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 model.eval()
