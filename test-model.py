@@ -1,56 +1,63 @@
 import torch
-from transformers import BertTokenizer, BertModel, BertForMaskedLM
-from nltk.tokenize import WordPunctTokenizer
-import numpy as np
-import time
+from transformers import BertTokenizer, BertForMaskedLM
 import textdistance
-top_k=6
-text="सुत्रां [MASK] तांणी एके बायले"
-text = tokenizer.tokenize(text)
-text.insert(0,'[CLS]')
-text.insert(len(text),'[SEP]')
-text
-for i,token in enumerate(text):
-    copy_text = text[:]
 
-    if token not in ('[CLS]','[SEP]'):
-        print(copy_text[i])
-        original_token = copy_text[i]
-        copy_text[i]='[MASK]'
-        copy_text = ' '.join(copy_text)
-        tokenized_text = tokenizer.tokenize(copy_text)
+# Parameters
+top_k = 6
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        masked_index = tokenized_text.index('[MASK]')
-        indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+# Load tokenizer and model
+tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+model = BertForMaskedLM.from_pretrained('bert-base-multilingual-cased')
+model.to(device)
+model.eval()
 
-        # Create the segments tensors.
-        segments_ids = [0] * len(tokenized_text)
+# Input sentence (must include [MASK])
+text = "सुत्रां [MASK] तांणी एके बायले"
 
-        # Convert inputs to PyTorch tensors
-        tokens_tensor = torch.tensor([indexed_tokens])
-        segments_tensors = torch.tensor([segments_ids])
+# Tokenize input
+tokenized_text = tokenizer.tokenize(text)
+tokenized_text = ['[CLS]'] + tokenized_text + ['[SEP]']
 
-        # Load pre-trained model (weights)
+# Get mask index
+masked_index = tokenized_text.index('[MASK]')
 
-        model.eval()
+# Convert tokens to IDs
+indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+segments_ids = [0] * len(tokenized_text)
 
-        # Predict all tokens
-        with torch.no_grad():
-            predictions = model(tokens_tensor, segments_tensors)
+# Convert to PyTorch tensors
+tokens_tensor = torch.tensor([indexed_tokens]).to(device)
+segments_tensors = torch.tensor([segments_ids]).to(device)
 
-        probs = torch.nn.functional.softmax(predictions[0][0][masked_index], dim=-1)
+# Predict masked token
+with torch.no_grad():
+    outputs = model(tokens_tensor, token_type_ids=segments_tensors)
+    predictions = outputs.logits
 
-        # All redicted tokens are selected here. len(probs) can be replaced with any number suitable to the use case
-        top_k_weights, top_k_indicies = torch.topk(probs, len(probs), sorted=True)
+# Softmax to get probabilities
+probs = torch.nn.functional.softmax(predictions[0, masked_index], dim=-1)
+top_k_weights, top_k_indices = torch.topk(probs, probs.size(-1), sorted=True)
 
-        output_dict={}
-        for i, pred_idx in enumerate(top_k_indicies):
-            predicted_token = tokenizer.convert_ids_to_tokens([pred_idx])[0]
-            token_weight = top_k_weights[i]
-            if len(original_token)>3:
-                if textdistance.levenshtein.normalized_similarity(predicted_token,original_token)>0.5:
-                    output_dict[predicted_token]=float(token_weight)
-            else:
-                output_dict[predicted_token]=float(token_weight)
-        output_dict = dict(list(output_dict.items())[0: top_k])
-        print(output_dict)
+# Optional: similarity filtering (if needed)
+original_token = ""  # You can specify expected token for correction logic
+suggestions = {}
+
+for idx, pred_idx in enumerate(top_k_indices):
+    predicted_token = tokenizer.convert_ids_to_tokens([pred_idx])[0]
+    prob = float(top_k_weights[idx])
+
+    # Optional: Filter by similarity if original_token is known
+    if original_token and len(original_token) > 3:
+        if textdistance.levenshtein.normalized_similarity(predicted_token, original_token) > 0.5:
+            suggestions[predicted_token] = prob
+    else:
+        suggestions[predicted_token] = prob
+
+    if len(suggestions) >= top_k:
+        break
+
+# Output suggestions
+print("Top suggestions for [MASK]:")
+for token, score in suggestions.items():
+    print(f"{token}: {score:.4f}")
