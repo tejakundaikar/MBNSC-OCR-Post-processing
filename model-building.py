@@ -10,7 +10,7 @@ from transformers import (
 
 
 # Load tokenizer from local directory
-tokenizer = BertTokenizerFast.from_pretrained("/content/sample_data/tokenizer/")
+tokenizer = BertTokenizerFast.from_pretrained("/tokenizer/")
 
 # Define BERT configuration (custom small model)
 config = BertConfig(
@@ -41,7 +41,7 @@ data_collator = DataCollatorForLanguageModeling(
 
 # Define training arguments
 training_args = TrainingArguments(
-    output_dir="/content/sample_data/model/",
+    output_dir="/model/",
     overwrite_output_dir=True,
     num_train_epochs=2,
     per_device_train_batch_size=16,
@@ -63,5 +63,5 @@ trainer = Trainer(
 trainer.train()
 
 # Save model and tokenizer
-model1=trainer.save_model("/content/sample_data/model/")
-tokenizer.save_pretrained("/content/sample_data/model/")
+model1=trainer.save_model("/model/")
+tokenizer.save_pretrained("/model/")
