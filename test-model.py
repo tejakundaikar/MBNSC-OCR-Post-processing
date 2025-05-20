@@ -33,6 +33,21 @@ def get_mask_suggestion(text, top_k=1):
     top_token = tokenizer.convert_ids_to_tokens([top_indices[0]])[0]
     return top_token, float(top_weights[0])
 
+
+def are_lengths_similar(word1, word2, max_diff=2):
+    """
+    Returns True if the length difference between two words is <= max_diff.
+    
+    Args:
+        word1 (str): First word.
+        word2 (str): Second word.
+        max_diff (int): Maximum allowed difference in length (default is 2).
+        
+    Returns:
+        bool: True if the words have similar lengths, False otherwise.
+    """
+    return abs(len(word1) - len(word2)) <= max_diff
+    
 def select_best_suggestion(original_word, masked_text):
     """
     Combines Norvig and MLM suggestions based on defined conditions.
@@ -54,7 +69,7 @@ def select_best_suggestion(original_word, masked_text):
     # Rule-based decision
     if norvig_prob == 1:
         return norvig_suggestion
-    elif len(mlm_suggestion) > len(original_word):
+    elif are_lengths_similar(mlm_suggestion, original_word):
         return mlm_suggestion
     else:
         return original_word  # fallback
