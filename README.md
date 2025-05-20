@@ -31,13 +31,13 @@ Install dependencies via pip:
 
 pip install transformers tokenizers torch numpy
 
-1. Prepare Your Data
+-1. Prepare Your Data
 Place your raw text corpus in data/train_corpus.txt.
-2.Build the Tokenizer
+-2. Build the Tokenizer
 python build-tokenizer.py
 This will generate a tokenizer and save vocab files in the tokenizer/ directory.
-3.Train the Model
+-3. Train the Model
 python model-building.py
 Model checkpoints and config files will be saved in the model/ directory.
-4. Test the Model
+-4. Test the Model
  python test-model.py
