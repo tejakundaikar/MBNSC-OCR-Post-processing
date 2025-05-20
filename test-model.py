@@ -1,63 +1,61 @@
 import torch
 from transformers import BertTokenizer, BertForMaskedLM
-import textdistance
 
-# Parameters
-top_k = 6
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Load tokenizer and model
+# Load tokenizer and model once
 tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
 model = BertForMaskedLM.from_pretrained('bert-base-multilingual-cased')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 model.eval()
 
-# Input sentence (must include [MASK])
+def get_mask_suggestion(text, top_k=1):
+    """
+    Returns the top suggestion(s) for the [MASK] token in the input text.
+    
+    Parameters:
+        text (str): Input sentence with exactly one [MASK] token
+        top_k (int): Number of top suggestions to return
+    
+    Returns:
+        list of (token, probability) tuples, or a single token string if top_k=1
+    """
+
+    if '[MASK]' not in text:
+        raise ValueError("The input text must contain a [MASK] token.")
+
+    # Tokenize and prepare inputs
+    tokenized_text = tokenizer.tokenize(text)
+    tokenized_text = ['[CLS]'] + tokenized_text + ['[SEP]']
+    masked_index = tokenized_text.index('[MASK]')
+    
+    indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+    segments_ids = [0] * len(tokenized_text)
+
+    tokens_tensor = torch.tensor([indexed_tokens]).to(device)
+    segments_tensors = torch.tensor([segments_ids]).to(device)
+
+    # Predict
+    with torch.no_grad():
+        outputs = model(tokens_tensor, token_type_ids=segments_tensors)
+        predictions = outputs.logits
+
+    probs = torch.nn.functional.softmax(predictions[0, masked_index], dim=-1)
+    top_weights, top_indices = torch.topk(probs, top_k, sorted=True)
+
+    # Convert token IDs to strings
+    results = [
+        (tokenizer.convert_ids_to_tokens([idx])[0], float(prob))
+        for idx, prob in zip(top_indices, top_weights)
+    ]
+
+    return results[0][0] if top_k == 1 else results
+
+
 text = "सुत्रां [MASK] तांणी एके बायले"
+suggestion = get_mask_suggestion(text)
+print("Top suggestion:", suggestion)
 
-# Tokenize input
-tokenized_text = tokenizer.tokenize(text)
-tokenized_text = ['[CLS]'] + tokenized_text + ['[SEP]']
-
-# Get mask index
-masked_index = tokenized_text.index('[MASK]')
-
-# Convert tokens to IDs
-indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
-segments_ids = [0] * len(tokenized_text)
-
-# Convert to PyTorch tensors
-tokens_tensor = torch.tensor([indexed_tokens]).to(device)
-segments_tensors = torch.tensor([segments_ids]).to(device)
-
-# Predict masked token
-with torch.no_grad():
-    outputs = model(tokens_tensor, token_type_ids=segments_tensors)
-    predictions = outputs.logits
-
-# Softmax to get probabilities
-probs = torch.nn.functional.softmax(predictions[0, masked_index], dim=-1)
-top_k_weights, top_k_indices = torch.topk(probs, probs.size(-1), sorted=True)
-
-# Optional: similarity filtering (if needed)
-original_token = ""  # You can specify expected token for correction logic
-suggestions = {}
-
-for idx, pred_idx in enumerate(top_k_indices):
-    predicted_token = tokenizer.convert_ids_to_tokens([pred_idx])[0]
-    prob = float(top_k_weights[idx])
-
-    # Optional: Filter by similarity if original_token is known
-    if original_token and len(original_token) > 3:
-        if textdistance.levenshtein.normalized_similarity(predicted_token, original_token) > 0.5:
-            suggestions[predicted_token] = prob
-    else:
-        suggestions[predicted_token] = prob
-
-    if len(suggestions) >= top_k:
-        break
-
-# Output suggestions
-print("Top suggestions for [MASK]:")
-for token, score in suggestions.items():
-    print(f"{token}: {score:.4f}")
+# Get top 6 suggestions
+suggestions = get_mask_suggestion(text, top_k=6)
+for token, prob in suggestions:
+    print(f"{token} : {prob:.4f}")
