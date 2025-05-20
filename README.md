@@ -14,7 +14,7 @@ MBNSC-OCR-Post-processing/
 ├── build-tokenizer.py
 ├── model-building.py
 ├── test-model.py
-├──norvig_spell.py
+├── norvig_spell.py
 ```
 
 
